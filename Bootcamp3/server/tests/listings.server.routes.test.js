@@ -5,7 +5,7 @@ var should = require('should'),
 
 /* Global variables */
 var app, agent, listing, id;
-var listing2, id2;
+var listing2, id2, id3;
 
 /* Unit tests for testing server side routes for the listings API */
 describe('Listings CRUD tests', function() {
@@ -145,6 +145,43 @@ describe('Listings CRUD tests', function() {
         should.not.exist(err);
         should.exist(res);
         agent.get('/api/listings/' + id2) 
+          .expect(400)
+          .end(function(err, res) {
+            id = undefined;
+            done();
+          });
+      })
+  });
+
+  it('should actually update listing coordinates', function(done) {
+    var testlisting = {
+      code: 'TEST', 
+      name: 'Mr. John Doe',
+      address: '5524 Deane Ave, Windsor Hills, CA 90043'
+    };
+    agent.post('/api/listings')
+      .send(testlisting)
+      .expect(200)
+      .end(function(err, res) {
+        should.not.exist(err);
+        should.exist(res.body._id);
+        res.body.name.should.equal('Mr. John Doe');
+        res.body.code.should.equal('TEST');
+        res.body.address.should.equal('5524 Deane Ave, Windsor Hills, CA 90043');
+        res.body.coordinates.latitude.should.equal(37.25022);
+        res.body.coordinates.longitude.should.equal(-119.75126);
+        id3 = res.body._id;
+        done();
+      });
+  });
+
+  it('should be able to delete another listing with coordinates', function(done) {
+    agent.delete('/api/listings/' + id3)
+      .expect(200)
+      .end(function(err, res) {
+        should.not.exist(err);
+        should.exist(res);
+        agent.get('/api/listings/' + id3) 
           .expect(400)
           .end(function(err, res) {
             id = undefined;
